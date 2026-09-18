@@ -632,6 +632,17 @@ def build_models(
             random_state=config["random_state"],
             n_jobs=-1,
         ),
+        "GradientBoosting": HistGradientBoostingClassifier(
+            learning_rate=0.03,
+            max_iter=200,
+            max_depth=3,
+            max_leaf_nodes=15,
+            min_samples_leaf=30,
+            l2_regularization=1.0,
+            class_weight="balanced",
+            early_stopping=False,
+            random_state=config["random_state"],
+        ),
     }
     fitted: dict[str, Any] = {}
     metric_rows = []

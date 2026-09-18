@@ -8,7 +8,7 @@
   "raw_path": "/Users/tien/Development/PhD_SUT_ENG552209_BigDataAnalytics/qqq-market-insight/data/raw/qqq_nasdaq_raw.json",
   "request_url": "https://api.nasdaq.com/api/quote/QQQ/historical?assetclass=etf&fromdate=2021-01-01&todate=2026-09-17&limit=5000",
   "response_bytes": 155655,
-  "retrieved_at_utc": "2026-09-18T16:31:32Z",
+  "retrieved_at_utc": "2026-09-18T17:51:44Z",
   "row_count": 1433,
   "sha256": "5af8f404421142e426ca6857137b9355c4bee85fd8067ae6923973e3dab7001a",
   "source_reference_url": "https://www.nasdaq.com/market-activity/etf/qqq/historical",
