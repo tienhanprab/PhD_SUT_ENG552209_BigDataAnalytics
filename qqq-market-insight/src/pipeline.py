@@ -756,6 +756,49 @@ def save_eda(df: pd.DataFrame) -> None:
     yearly.to_csv(TABLES_PATH / "yearly_summary.csv")
 
 
+def _validate_cached_raw(config: dict[str, Any]) -> tuple[dict[str, Any], str]:
+    """Verify that the saved raw response matches its metadata and config."""
+    if not RAW_DATA_PATH.exists():
+        raise FileNotFoundError(
+            f"Raw Nasdaq response not found at {RAW_DATA_PATH}. "
+            "Run --stage download first."
+        )
+    if not RAW_METADATA_PATH.exists():
+        raise FileNotFoundError(
+            "Raw provenance metadata is missing; run --stage download to create "
+            "a matched raw response and metadata file"
+        )
+
+    metadata = json.loads(RAW_METADATA_PATH.read_text(encoding="utf-8"))
+    for config_key, metadata_key in (
+        ("symbol", "symbol"),
+        ("asset_class", "asset_class"),
+        ("start_date", "configured_start_date"),
+        ("end_date", "configured_end_date"),
+    ):
+        if config[config_key] != metadata.get(metadata_key):
+            raise ValueError(
+                f"Cached raw {config_key} does not match config.json; restore the "
+                "matching configuration or intentionally refresh with "
+                "--stage download --force"
+            )
+
+    raw_sha256 = hashlib.sha256(RAW_DATA_PATH.read_bytes()).hexdigest()
+    if raw_sha256 != metadata.get("sha256"):
+        raise ValueError("Raw response checksum does not match its provenance metadata")
+    return metadata, raw_sha256
+
+
+def _save_processed_features(data: pd.DataFrame) -> None:
+    """Save the reproducible model-ready derivative, never the raw response."""
+    PROCESSED_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    data.to_csv(
+        PROCESSED_DATA_PATH,
+        index=False,
+        date_format="%Y-%m-%d",
+    )
+
+
 # 8. Workflow orchestration
 def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     """Run acquisition through saved tables/figures and return an audit summary.
@@ -773,21 +816,7 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     # 1. Download (or reuse the preserved response when acquisition is omitted).
     if download or not RAW_DATA_PATH.exists():
         download_data(force=force)
-    if not RAW_METADATA_PATH.exists():
-        raise FileNotFoundError("Raw provenance metadata is missing; restore it before running")
-    metadata = json.loads(RAW_METADATA_PATH.read_text(encoding="utf-8"))
-    for config_key, metadata_key in (
-        ("symbol", "symbol"), ("asset_class", "asset_class"),
-        ("start_date", "configured_start_date"), ("end_date", "configured_end_date"),
-    ):
-        if config[config_key] != metadata.get(metadata_key):
-            raise ValueError(
-                f"Cached raw {config_key} does not match config.json; restore the "
-                "matching configuration or intentionally refresh with --download --force"
-            )
-    raw_sha256 = hashlib.sha256(RAW_DATA_PATH.read_bytes()).hexdigest()
-    if raw_sha256 != metadata.get("sha256"):
-        raise ValueError("Raw response checksum does not match its provenance metadata")
+    _, raw_sha256 = _validate_cached_raw(config)
 
     # 2. Parse and clean.
     clean_ohlcv = parse_raw()
@@ -813,8 +842,7 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     # 5 expanding CV folds need six nonempty blocks and one boundary gap.
     if split_index - 1 < 12 or len(data) - split_index < 2:
         raise ValueError("Insufficient train/test rows for a holdout and five time-series CV folds")
-    PROCESSED_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-    data.to_csv(PROCESSED_DATA_PATH, index=False)
+    _save_processed_features(data)
 
     # 4. Exploratory data analysis.
     save_eda(data.iloc[:split_index - 1])
@@ -1020,13 +1048,93 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     return summary
 
 
+def run_stage(
+    stage: str,
+    *,
+    download: bool = False,
+    force: bool = False,
+) -> dict[str, Any] | None:
+    """Run one learning stage from this file and stop at its output boundary.
+
+    ``parse`` is read-only. ``features`` starts again from the preserved raw
+    JSON because separate command-line runs cannot share an in-memory
+    DataFrame. ``all`` keeps the original end-to-end behavior.
+    """
+    valid_stages = {"download", "parse", "features", "all"}
+    if stage not in valid_stages:
+        raise ValueError(f"Unknown stage {stage!r}; choose one of {sorted(valid_stages)}")
+    if download and stage != "all":
+        raise ValueError("download=True is valid only for stage='all'")
+    if force and not (stage == "download" or (stage == "all" and download)):
+        raise ValueError(
+            "force=True requires stage='download' or stage='all' with download=True"
+        )
+
+    # Download only: write the unchanged Nasdaq response and its metadata, then stop.
+    if stage == "download":
+        download_data(force=force)
+        return None
+
+    # Full workflow: preserve the original pipeline behavior and command flags.
+    if stage == "all":
+        return run(download=download, force=force)
+
+    config = load_config()
+    _, raw_sha256 = _validate_cached_raw(config)
+
+    # Parse only: clean and audit in memory. This stage does not write a CSV.
+    clean_ohlcv = parse_raw()
+    quality = dict(clean_ohlcv.attrs.get("quality", {}))
+    parse_summary: dict[str, Any] = {
+        "stage": "parse",
+        "rows": len(clean_ohlcv),
+        "start_date": clean_ohlcv["Date"].min().date().isoformat(),
+        "end_date": clean_ohlcv["Date"].max().date().isoformat(),
+        "dtypes": {column: str(dtype) for column, dtype in clean_ohlcv.dtypes.items()},
+        "quality": quality,
+        "raw_sha256": raw_sha256,
+    }
+    if stage == "parse":
+        print(json.dumps(parse_summary, indent=2))
+        return parse_summary
+
+    # Feature stage: reject broken daily rows before indicators can bridge a gap.
+    if quality.get("invalid_rows_removed", 0):
+        raise ValueError(
+            "Invalid quote rows were removed; inspect the parse-stage quality output "
+            "before creating features"
+        )
+    feature_data = add_features(clean_ohlcv)
+    _save_processed_features(feature_data)
+    feature_quality = dict(feature_data.attrs.get("quality", {}))
+    feature_summary = {
+        "stage": "features",
+        "rows": len(feature_data),
+        "columns": len(feature_data.columns),
+        "technical_indicator_count": len(FEATURES),
+        "start_date": feature_data["Date"].min().date().isoformat(),
+        "end_date": feature_data["Date"].max().date().isoformat(),
+        "processed_path": str(PROCESSED_DATA_PATH),
+        "quality": feature_quality,
+        "raw_sha256": raw_sha256,
+    }
+    print(json.dumps(feature_summary, indent=2))
+    return feature_summary
+
+
 def main() -> None:
-    """Command-line entry point for the complete analysis pipeline."""
+    """Command-line entry point for one stage or the complete pipeline."""
     parser = ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--stage",
+        choices=("download", "parse", "features", "all"),
+        default="all",
+        help="run one learning stage and stop (default: all)",
+    )
     parser.add_argument(
         "--download",
         action="store_true",
-        help="download Nasdaq data before running (existing raw data is reused otherwise)",
+        help="download Nasdaq data before --stage all (legacy end-to-end option)",
     )
     parser.add_argument(
         "--force",
@@ -1034,9 +1142,15 @@ def main() -> None:
         help="allow an intentional replacement of existing raw artifacts",
     )
     args = parser.parse_args()
-    if args.force and not args.download:
-        parser.error("--force is valid only together with --download")
-    run(download=args.download, force=args.force)
+    if args.download and args.stage != "all":
+        parser.error("--download is valid only with --stage all; use --stage download")
+    if args.force and not (
+        args.stage == "download" or (args.stage == "all" and args.download)
+    ):
+        parser.error(
+            "--force requires --stage download, or --stage all together with --download"
+        )
+    run_stage(args.stage, download=args.download, force=args.force)
 
 
 if __name__ == "__main__":

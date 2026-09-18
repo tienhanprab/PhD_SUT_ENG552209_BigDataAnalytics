@@ -327,6 +327,61 @@ class PipelineImportTest(unittest.TestCase):
                     original[name].predict_proba(x_test), changed[name].predict_proba(x_test)
                 )
 
+    def test_parse_stage_is_read_only_and_does_not_download(self):
+        clean = self.feature_frame()
+        clean.attrs["quality"] = {"invalid_rows_removed": 0}
+        with (
+            patch.object(pipeline, "_validate_cached_raw", return_value=({}, "abc123")),
+            patch.object(pipeline, "parse_raw", return_value=clean) as parse,
+            patch.object(pipeline, "download_data") as download,
+            patch.object(pipeline, "add_features") as add,
+            patch.object(pipeline, "_save_processed_features") as save,
+            patch("builtins.print"),
+        ):
+            summary = pipeline.run_stage("parse")
+
+        parse.assert_called_once_with()
+        download.assert_not_called()
+        add.assert_not_called()
+        save.assert_not_called()
+        self.assertEqual(summary["stage"], "parse")
+        self.assertEqual(summary["rows"], len(clean))
+
+    def test_feature_stage_saves_model_ready_csv_without_running_analysis(self):
+        clean = self.feature_frame()
+        clean.attrs["quality"] = {"invalid_rows_removed": 0}
+        with tempfile.TemporaryDirectory() as directory:
+            processed_path = Path(directory) / "processed" / "qqq_features.csv"
+            with (
+                patch.object(pipeline, "PROCESSED_DATA_PATH", processed_path),
+                patch.object(pipeline, "_validate_cached_raw", return_value=({}, "abc123")),
+                patch.object(pipeline, "parse_raw", return_value=clean),
+                patch.object(pipeline, "download_data") as download,
+                patch.object(pipeline, "save_eda") as save_eda,
+                patch.object(pipeline, "build_models") as build_models,
+                patch("builtins.print"),
+            ):
+                summary = pipeline.run_stage("features")
+
+            saved = pd.read_csv(processed_path)
+            download.assert_not_called()
+            save_eda.assert_not_called()
+            build_models.assert_not_called()
+            self.assertEqual(summary["stage"], "features")
+            self.assertEqual(len(saved), summary["rows"])
+            self.assertTrue({"Open", "High", "Low", "Close", "Volume", "next_return", "target_up"} <= set(saved))
+            self.assertTrue(set(FEATURES) <= set(saved))
+            self.assertNotIn("Unnamed: 0", saved.columns)
+
+    def test_stage_flags_protect_raw_and_reject_ambiguous_combinations(self):
+        with self.assertRaisesRegex(ValueError, "force=True"):
+            pipeline.run_stage("parse", force=True)
+        with self.assertRaisesRegex(ValueError, "download=True"):
+            pipeline.run_stage("features", download=True)
+        with patch.object(pipeline, "download_data") as download:
+            pipeline.run_stage("download", force=True)
+        download.assert_called_once_with(force=True)
+
     @staticmethod
     def model_frames():
         x_train = pd.DataFrame({"a": np.arange(60, dtype=float), "b": np.sin(np.arange(60))})

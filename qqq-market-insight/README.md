@@ -139,6 +139,31 @@ Download (when requested or raw data is absent)
 An existing raw response is reused by default. To intentionally replace it,
 run `.venv/bin/python src/pipeline.py --download --force`.
 
+### Run the data steps one at a time
+
+For studying the code, run `pipeline.py` directly and stop after each data
+boundary. Each command starts a new Python process, so the feature step parses
+the saved raw JSON again before it creates the processed dataset.
+
+```bash
+# 1. Download only. Omit --force when no raw files exist yet.
+.venv/bin/python src/pipeline.py --stage download --force
+
+# 2. Parse, clean, and print the quality audit; no processed file is written.
+.venv/bin/python src/pipeline.py --stage parse
+
+# 3. Parse again, engineer features, and save data/processed/qqq_features.csv.
+.venv/bin/python src/pipeline.py --stage features
+
+# 4. Later, run EDA, modeling, evaluation, and feature importance as well.
+.venv/bin/python src/pipeline.py --stage all
+```
+
+The raw JSON is immutable by default: `--stage download` stops if either raw
+artifact already exists. Use `--force` only when you intentionally want to
+replace both the Nasdaq response and its provenance metadata. The `parse` and
+`features` stages never access the network.
+
 ## Main functions in `src/pipeline.py`
 
 The implementation follows the supplied example's eight main functions.

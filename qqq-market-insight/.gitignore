@@ -4,12 +4,3 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache/
 .DS_Store
-
-# Generated data and outputs; preserve directory placeholders.
-data/raw/*
-data/interim/*
-data/processed/*
-outputs/figures/*
-outputs/tables/*
-outputs/models/*
-!**/.gitkeep
