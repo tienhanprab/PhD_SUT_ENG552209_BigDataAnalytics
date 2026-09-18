@@ -95,6 +95,8 @@ Verify the setup:
 
 ```bash
 python -m unittest discover -s tests -v
+# Direct-file form (also supported):
+python tests/test_pipeline.py -v
 python -c "from src.pipeline import load_config; print(load_config())"
 ```
 
@@ -136,8 +138,10 @@ Download (when requested or raw data is absent)
   -> Save Tables and Figures
 ```
 
-An existing raw response is reused by default. To intentionally replace it,
-run `.venv/bin/python src/pipeline.py --download --force`.
+An existing raw response is reused by default. To replace only the raw response
+and metadata, run `.venv/bin/python src/pipeline.py --stage download --force`.
+The legacy command `.venv/bin/python src/pipeline.py --download --force`
+refreshes the raw artifacts and then continues through the full pipeline.
 
 ### Run the data steps one at a time
 
@@ -163,6 +167,17 @@ The raw JSON is immutable by default: `--stage download` stops if either raw
 artifact already exists. Use `--force` only when you intentionally want to
 replace both the Nasdaq response and its provenance metadata. The `parse` and
 `features` stages never access the network.
+
+For the separate five-year experiment, the focused downloader stops before
+parsing and modeling and preserves its own raw artifacts:
+
+```bash
+.venv/bin/python src/pipeline_qqq.py --force
+```
+
+It writes `data/raw/qqq_nasdaq_ohlcv_5_year_raw.json` and
+`data/raw/qqq_nasdaq_ohlcv_5_year_raw.metadata.json`; it does not overwrite the
+original `qqq_nasdaq_raw` dataset.
 
 ## Main functions in `src/pipeline.py`
 

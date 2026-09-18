@@ -331,6 +331,7 @@ def download_data(force: bool = False) -> None:
     print(f"Metadata: {RAW_METADATA_PATH}")
 
 
+# 2. Parse and clean
 def _numeric(series: pd.Series) -> pd.Series:
     """Parse Nasdaq numeric strings such as ``$123.45`` and ``1,000``."""
     return pd.to_numeric(
@@ -340,8 +341,6 @@ def _numeric(series: pd.Series) -> pd.Series:
         errors="coerce",
     )
 
-
-# 2. Parse and clean
 def parse_raw(raw_path: Path | None = None) -> pd.DataFrame:
     """Convert Nasdaq JSON into an ascending, unique-date OHLCV DataFrame.
 
@@ -1105,6 +1104,11 @@ def run_stage(
             "before creating features"
         )
     feature_data = add_features(clean_ohlcv)
+    if feature_data.empty:
+        raise ValueError(
+            "Feature engineering produced no model-ready rows; inspect zero/constant "
+            "price or volume series and the feature-removal audit"
+        )
     _save_processed_features(feature_data)
     feature_quality = dict(feature_data.attrs.get("quality", {}))
     feature_summary = {
