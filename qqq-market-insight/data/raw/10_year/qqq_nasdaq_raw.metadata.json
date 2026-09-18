@@ -1,0 +1,18 @@
+{
+  "asset_class": "etf",
+  "configured_end_date": "2026-09-17",
+  "configured_start_date": "2016-09-17",
+  "duplicate_date_count": 0,
+  "first_date": "2016-09-19",
+  "last_date": "2026-09-17",
+  "raw_path": "/Users/tien/Development/PhD_SUT_ENG552209_BigDataAnalytics/qqq-market-insight/data/raw/10_year/qqq_nasdaq_raw.json",
+  "request_url": "https://api.nasdaq.com/api/quote/QQQ/historical?assetclass=etf&fromdate=2016-09-17&todate=2026-09-17&limit=5000",
+  "response_bytes": 272717,
+  "retrieved_at_utc": "2026-09-18T19:33:05Z",
+  "row_count": 2513,
+  "sha256": "026bb7b945fd3b90952b40f062b7142a5ed965b17d086650974ea6d31d3bf013",
+  "source_reference_url": "https://www.nasdaq.com/market-activity/etf/qqq/historical",
+  "symbol": "QQQ",
+  "total_records": 2513,
+  "unique_date_count": 2513
+}
