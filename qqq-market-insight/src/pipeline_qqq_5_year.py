@@ -1,15 +1,3 @@
-"""End-to-end QQQ technical-indicator analysis pipeline.
-
-Workflow: download -> parse and clean -> feature engineering -> EDA ->
-chronological split -> training -> evaluation -> held-out permutation
-importance -> saved tables and figures.  The notebook imports these functions
-instead of duplicating the analytical code.
-
-Primary functions follow the supplied example: download_data, parse_raw, rsi,
-add_features, metric_row, build_models, save_eda, and run. Supporting helpers
-handle configuration, validation, provenance, probabilities, and file output.
-"""
-
 from __future__ import annotations
 
 import hashlib
