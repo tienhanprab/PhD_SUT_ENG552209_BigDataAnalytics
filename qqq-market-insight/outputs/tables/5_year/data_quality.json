@@ -30,11 +30,11 @@
   "permutation_importance_scope": "held-out test set only",
   "eda_scope": "training period only (holdout and boundary gap excluded)",
   "eda_rows": 1128,
-  "cv_model": "Random forest",
+  "cv_model": "GradientBoosting",
   "cv_splits": 5,
   "cv_gap_rows": 1,
   "modeling_mode": "original three fixed models; no hyperparameter search",
-  "permutation_importance_model": "Random forest",
+  "permutation_importance_model": "GradientBoosting",
   "permutation_importance_scoring": "balanced_accuracy",
   "holdout_status": "previously inspected; exploratory comparison, not fresh confirmation",
   "raw_sha256": "5af8f404421142e426ca6857137b9355c4bee85fd8067ae6923973e3dab7001a",
@@ -45,7 +45,8 @@
     "end_date": "2026-09-17",
     "test_fraction": 0.2,
     "random_state": 42,
-    "permutation_repeats": 30
+    "permutation_repeats": 30,
+    "active_profile_name": "5_year"
   },
   "family_importance_method": "sum of individual feature means, not joint permutation"
 }

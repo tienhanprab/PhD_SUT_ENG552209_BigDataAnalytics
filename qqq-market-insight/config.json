@@ -1,12 +1,25 @@
-// qqq-market-insight/config.json
-// กำหนดค่าเริ่มต้นให้ API ดึงข้อมูลย้อนหลัง 5 ปี
-
 {
-  "symbol": "QQQ",
-  "asset_class": "etf",
-  "start_date": "2021-01-01",
-  "end_date": "2026-09-17",
-  "test_fraction": 0.20,
-  "random_state": 42,
-  "permutation_repeats": 30
+  "active_profile": "5_year",
+  //active_profile": "10_year",
+
+  "profiles": {
+    "5_year": {
+      "symbol": "QQQ",
+      "asset_class": "etf",
+      "start_date": "2021-01-01",
+      "end_date": "2026-09-17",
+      "test_fraction": 0.20,
+      "random_state": 42,
+      "permutation_repeats": 30
+    },
+    "10_year": {
+      "symbol": "QQQ",
+      "asset_class": "etf",
+      "start_date": "2016-09-17",
+      "end_date": "2026-09-17",
+      "test_fraction": 0.20,
+      "random_state": 42,
+      "permutation_repeats": 30
+    }
+  }
 }

@@ -36,7 +36,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.base import clone
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.inspection import permutation_importance
 from sklearn.linear_model import LogisticRegression
@@ -55,16 +55,18 @@ from sklearn.model_selection import TimeSeriesSplit, cross_validate
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-
+# 1. ตั้งค่า Paths (อ้างอิงจากโฟลเดอร์ปัจจุบันของ File)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config.json"
-RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_nasdaq_raw.json"
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "5_year" / "qqq_nasdaq_raw.json"
 RAW_METADATA_PATH = (
-    PROJECT_ROOT / "data" / "raw" / "qqq_nasdaq_raw.metadata.json"
+    PROJECT_ROOT / "data" / "raw" / "5_year" / "qqq_nasdaq_raw.metadata.json"
 )
-PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "qqq_features.csv"
-FIGURES_PATH = PROJECT_ROOT / "outputs" / "figures"
-TABLES_PATH = PROJECT_ROOT / "outputs" / "tables"
+PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "5_year" / "qqq_features.csv"
+FIGURES_PATH = PROJECT_ROOT / "outputs" / "figures" / "5_year"
+TABLES_PATH = PROJECT_ROOT / "outputs" / "tables" / "5_year"
+
+# 2. ตั้งค่า Constants สำหรับ API
 NASDAQ_API_ENDPOINT = "https://api.nasdaq.com/api/quote/{symbol}/historical"
 NASDAQ_SOURCE_REFERENCE = (
     "https://www.nasdaq.com/market-activity/etf/qqq/historical"
@@ -100,18 +102,29 @@ FEATURES = [feature for features in FEATURE_GROUPS.values() for feature in featu
 CV_SPLITS = 5
 CV_GAP = 1
 
-
+# 3. ฟังก์ชันอ่าน Config
 def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
-    """Load project parameters, allowing optional full-line // comments."""
     with path.open(encoding="utf-8") as config_file:
-        config = json.loads("\n".join(
+        # อ่านไฟล์และกรองบรรทัดที่ขึ้นต้นด้วย // ออกก่อน
+        cleaned_json_string = "\n".join(
             line for line in config_file if not line.lstrip().startswith("//")
-        ))
+        )
+        raw_config = json.loads(cleaned_json_string)
+  
+    active = raw_config.get("active_profile", "5_year")
+    
+    # ดึงข้อมูลของ profile นั้นมาใช้งาน
+    if active not in raw_config.get("profiles", {}):
+        raise ValueError(f"ไม่พบ Profile: {active} ในไฟล์ config")
 
+    config = raw_config["profiles"][active]
+    config["active_profile_name"] = active
+
+    # (โค้ดตรวจสอบ KEY ต่างๆ ยังเหมือนเดิม)
     missing = REQUIRED_CONFIG_KEYS - config.keys()
     if missing:
         raise ValueError(f"Missing config keys: {sorted(missing)}")
-
+    
     start_date = date.fromisoformat(config["start_date"])
     end_date = date.fromisoformat(config["end_date"])
     if start_date > end_date:
@@ -120,10 +133,11 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
         raise ValueError("test_fraction must be between 0 and 1")
     if config["permutation_repeats"] < 1:
         raise ValueError("permutation_repeats must be at least 1")
-
+    
     return config
 
 
+# 4. ฟังก์ชันบันทึกไฟล์ (พร้อมทำ Metadata ควบคุม Version)
 def save_raw_response(
     response_body: bytes,
     *,
@@ -174,7 +188,7 @@ def save_raw_response(
     )
     return raw_path, metadata_path
 
-
+# 5. ฟังก์ชันตรวจสอบความถูกต้องของข้อมูล (Validation)
 def _validate_nasdaq_payload(payload: Any) -> dict[str, Any]:
     """Validate the acquisition contract and return a compact summary."""
     if not isinstance(payload, dict):
@@ -238,8 +252,7 @@ def _validate_nasdaq_payload(payload: Any) -> dict[str, Any]:
         "total_records": total_records,
     }
 
-
-# 1. Data acquisition
+# 6. Data acquisition ฟังก์ชันหลักสำหรับดึงข้อมูล
 def download_data(force: bool = False) -> None:
     """Download and preserve the validated Nasdaq QQQ historical response.
 
@@ -331,7 +344,7 @@ def download_data(force: bool = False) -> None:
     print(f"Metadata: {RAW_METADATA_PATH}")
 
 
-# 2. Parse and clean
+# 7. Parse and clean
 def _numeric(series: pd.Series) -> pd.Series:
     """Parse Nasdaq numeric strings such as ``$123.45`` and ``1,000``."""
     return pd.to_numeric(
@@ -439,7 +452,7 @@ def parse_raw(raw_path: Path | None = None) -> pd.DataFrame:
     return frame
 
 
-# 3. Relative Strength Index
+# 8. Relative Strength Index
 def rsi(series: pd.Series, window: int = 14) -> pd.Series:
     """Return RSI in [0, 100] with the supplied example's recursive EWM seed.
 
@@ -461,7 +474,7 @@ def rsi(series: pd.Series, window: int = 14) -> pd.Series:
     return result.mask((loss == 0) & (gain == 0), 50.0)
 
 
-# 4. Feature engineering and target
+# 9. Feature engineering and target
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """Return OHLCV, 21 indicators, next_return, and integer target_up.
 
@@ -554,7 +567,7 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     return model_data
 
 
-# 5. Classification metrics
+# 10. Classification metrics
 def metric_row(
     name: str, y_true: pd.Series, pred: np.ndarray, prob: np.ndarray
 ) -> dict[str, float | str]:
@@ -585,7 +598,7 @@ def _positive_probability(model: Any, features: pd.DataFrame) -> np.ndarray:
     return probabilities[:, classes.index(1)]
 
 
-# 6. Model training (same two-value return contract as the supplied example)
+# 11. Model training (same two-value return contract as the supplied example)
 def build_models(
     X_train: pd.DataFrame,
     y_train: pd.Series,
@@ -663,7 +676,7 @@ def _save_figure(path: Path, caption: str | None = None) -> None:
     plt.close()
 
 
-# 7. Exploratory data analysis
+# 12. Exploratory data analysis
 def save_eda(df: pd.DataFrame) -> None:
     """Save line, histogram, box, scatter, heatmap, and bar charts plus statistics.
 
@@ -809,7 +822,7 @@ def _save_processed_features(data: pd.DataFrame) -> None:
     )
 
 
-# 8. Workflow orchestration
+# 13. Workflow orchestration
 def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     """Run acquisition through saved tables/figures and return an audit summary.
 
@@ -823,12 +836,12 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
         raise ValueError("force=True requires download=True")
     config = load_config()
 
-    # 1. Download (or reuse the preserved response when acquisition is omitted).
+    # 13.1. Download (or reuse the preserved response when acquisition is omitted).
     if download or not RAW_DATA_PATH.exists():
         download_data(force=force)
     _, raw_sha256 = _validate_cached_raw(config)
 
-    # 2. Parse and clean.
+    # 13.2. Parse and clean.
     clean_ohlcv = parse_raw()
     quality = dict(clean_ohlcv.attrs.get("quality", {}))
     TABLES_PATH.mkdir(parents=True, exist_ok=True)
@@ -842,22 +855,21 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
             "modeling. Resolve missing sessions so next_return means the next trading day."
         )
 
-    # 3. Feature engineering.
+    # 13.3. Feature engineering.
     data = add_features(clean_ohlcv)
     quality.update(data.attrs["quality"])
     label_dates = pd.Series(
         clean_ohlcv["Date"].shift(-1).to_numpy(), index=clean_ohlcv["Date"]
     ).reindex(data["Date"]).reset_index(drop=True)
     split_index = int(len(data) * (1 - config["test_fraction"]))
-    # 5 expanding CV folds need six nonempty blocks and one boundary gap.
+    # 13.4. Exploratory data analysis expanding CV folds need six nonempty blocks and one boundary gap.
     if split_index - 1 < 12 or len(data) - split_index < 2:
         raise ValueError("Insufficient train/test rows for a holdout and five time-series CV folds")
     _save_processed_features(data)
 
-    # 4. Exploratory data analysis.
     save_eda(data.iloc[:split_index - 1])
 
-    # 5. Chronological train/test split.
+    # 13.5. Chronological train/test split.
     train = data.iloc[:split_index - 1].copy()
     test = data.iloc[split_index:].copy()
     if train["Date"].max() >= test["Date"].min():
@@ -867,7 +879,7 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     x_train, y_train = train[FEATURES], train["target_up"]
     x_test, y_test = test[FEATURES], test["target_up"]
 
-    # 6-7. Fit the original three fixed models and evaluate the holdout.
+    # 13.6-7. Fit the original three fixed models and evaluate the holdout.
     fitted, metrics = build_models(
         x_train, y_train, x_test, y_test, config=config
     )
@@ -883,18 +895,46 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
         predictions[f"{slug}_probability_up"] = _positive_probability(model, x_test)
     predictions.to_csv(TABLES_PATH / "test_predictions.csv", index=False)
 
-    forest = fitted["Random forest"]
-    forest_prediction = forest.predict(x_test)
-    matrix = confusion_matrix(y_test, forest_prediction, labels=[0, 1])
+    # forest = fitted["Random forest"]
+    # forest_prediction = forest.predict(x_test)
+    # matrix = confusion_matrix(y_test, forest_prediction, labels=[0, 1])
+    # pd.DataFrame(
+    #     matrix,
+    #     index=["Actual down_or_flat", "Actual up"],
+    #     columns=["Predicted down_or_flat", "Predicted up"],
+    # ).to_csv(TABLES_PATH / "confusion_matrix.csv")
+    # (TABLES_PATH / "classification_report.json").write_text(
+    #     json.dumps(
+    #         classification_report(
+    #             y_test, forest_prediction, output_dict=True, zero_division=0
+    #         ),
+    #         indent=2,
+    #     ) + "\n",
+    #     encoding="utf-8",
+    # )
+
+    # time_series_cv = TimeSeriesSplit(n_splits=CV_SPLITS, gap=CV_GAP)
+    # cv_result = cross_validate(
+    #     clone(forest), x_train, y_train, cv=time_series_cv,
+    #     scoring=["accuracy", "balanced_accuracy", "f1", "roc_auc"],
+    #     n_jobs=-1, error_score="raise",
+    # )
+    # เลือกโมเดล Challenger มาเป็นตัวหลักในการประเมินผลเชิงลึก
+    target_model_name = "GradientBoosting"
+    main_model = fitted[target_model_name]
+    main_prediction = main_model.predict(x_test)
+    
+    matrix = confusion_matrix(y_test, main_prediction, labels=[0, 1])
     pd.DataFrame(
         matrix,
         index=["Actual down_or_flat", "Actual up"],
         columns=["Predicted down_or_flat", "Predicted up"],
     ).to_csv(TABLES_PATH / "confusion_matrix.csv")
+    
     (TABLES_PATH / "classification_report.json").write_text(
         json.dumps(
             classification_report(
-                y_test, forest_prediction, output_dict=True, zero_division=0
+                y_test, main_prediction, output_dict=True, zero_division=0
             ),
             indent=2,
         ) + "\n",
@@ -902,11 +942,14 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     )
 
     time_series_cv = TimeSeriesSplit(n_splits=CV_SPLITS, gap=CV_GAP)
+    
+    # ใช้งาน Cross Validation กับโมเดลใหม่
     cv_result = cross_validate(
-        clone(forest), x_train, y_train, cv=time_series_cv,
+        clone(main_model), x_train, y_train, cv=time_series_cv,
         scoring=["accuracy", "balanced_accuracy", "f1", "roc_auc"],
         n_jobs=-1, error_score="raise",
     )
+    
     cv_folds = pd.DataFrame({
         key.removeprefix("test_"): value for key, value in cv_result.items()
         if key.startswith("test_")
@@ -936,13 +979,21 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     ])
     cv_summary.to_csv(TABLES_PATH / "timeseries_cv_summary.csv", index=False)
 
-    # 8. Permutation importance on the held-out test period only.
+    # 13.8. Permutation importance on the held-out test period only.
+    # permutation = permutation_importance(
+    #     forest, x_test, y_test,
+    #     n_repeats=config["permutation_repeats"],
+    #     random_state=config["random_state"],
+    #     scoring="balanced_accuracy", n_jobs=-1,
+    # )
+    # เปลี่ยนจาก forest เป็น main_model
     permutation = permutation_importance(
-        forest, x_test, y_test,
+        main_model, x_test, y_test,
         n_repeats=config["permutation_repeats"],
         random_state=config["random_state"],
         scoring="balanced_accuracy", n_jobs=-1,
     )
+
     importance = pd.DataFrame({
         "feature": FEATURES,
         "importance_mean": permutation.importances_mean,
@@ -963,7 +1014,7 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     )
     family_importance.to_csv(TABLES_PATH / "group_importance.csv", index=False)
 
-    # 9. Save evaluation and explanation figures plus the quality audit.
+    # 13.9. Save evaluation and explanation figures plus the quality audit.
     plt.figure(figsize=(9, 6))
     top = importance.head(12).sort_values("importance_mean")
     plt.barh(
@@ -973,7 +1024,8 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     plt.axvline(0, color="black", lw=0.8)
     plt.xlabel("Decrease in held-out balanced accuracy")
     plt.ylabel("Feature")
-    plt.title("Held-out permutation importance: Random forest")
+    # plt.title("Held-out permutation importance: Random forest")
+    plt.title(f"Held-out permutation importance: {target_model_name}")
     _save_figure(
         FIGURES_PATH / "07_feature_importance.png",
         "Error bars: +/- 1 permutation standard deviation (not a confidence interval)",
@@ -985,7 +1037,8 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     plt.axvline(0, color="black", lw=0.8)
     plt.xlabel("Sum of held-out feature permutation importance")
     plt.ylabel("Feature family")
-    plt.title("Indicator family importance: Random forest")
+    # plt.title("Indicator family importance: Random forest")
+    plt.title(f"Indicator family importance: {target_model_name}")
     _save_figure(FIGURES_PATH / "08_group_importance.png")
 
     plt.figure(figsize=(6.5, 5))
@@ -995,7 +1048,8 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     )
     plt.xlabel("Predicted class")
     plt.ylabel("Actual class")
-    plt.title("Random forest confusion matrix")
+    # plt.title("Random forest confusion matrix")
+    plt.title(f"{target_model_name} confusion matrix")
     _save_figure(FIGURES_PATH / "09_confusion_matrix.png")
 
     plt.figure(figsize=(7, 5))
@@ -1033,11 +1087,11 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
             "permutation_importance_scope": "held-out test set only",
             "eda_scope": "training period only (holdout and boundary gap excluded)",
             "eda_rows": len(train),
-            "cv_model": "Random forest",
+            "cv_model": target_model_name,
             "cv_splits": CV_SPLITS,
             "cv_gap_rows": CV_GAP,
             "modeling_mode": "original three fixed models; no hyperparameter search",
-            "permutation_importance_model": "Random forest",
+            "permutation_importance_model": target_model_name,
             "permutation_importance_scoring": "balanced_accuracy",
             "holdout_status": "previously inspected; exploratory comparison, not fresh confirmation",
             "raw_sha256": raw_sha256,

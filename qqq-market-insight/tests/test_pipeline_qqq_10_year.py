@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import src.pipeline_qqq as downloader
+import pipeline_qqq_10_year as downloader
 
 
 class PipelineQqqDownloaderTest(unittest.TestCase):

@@ -11,14 +11,14 @@ from typing import Any
 # 1. ตั้งค่า Paths (อ้างอิงจากโฟลเดอร์ปัจจุบันของ File)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config.json"
-RAW_DATA_OHLCV_5_YEAR_PATH = (
-    PROJECT_ROOT / "data" / "raw" / "qqq_nasdaq_ohlcv_5_year_raw.json"
+RAW_DATA_OHLCV_10_YEAR_PATH = (
+    PROJECT_ROOT / "data" / "raw" / "qqq_nasdaq_ohlcv_10_year_raw.json"
 )
-RAW_METADATA_OHLCV_5_YEAR_PATH = (
+RAW_METADATA_OHLCV_10_YEAR_PATH = (
     PROJECT_ROOT
     / "data"
     / "raw"
-    / "qqq_nasdaq_ohlcv_5_year_raw.metadata.json"
+    / "qqq_nasdaq_ohlcv_10_year_raw.metadata.json"
 )
 
 # 2. ตั้งค่า Constants สำหรับ API
@@ -76,8 +76,8 @@ def save_raw_response(
     *,
     request_url: str,
     retrieved_at_utc: str,
-    raw_path: Path = RAW_DATA_OHLCV_5_YEAR_PATH,
-    metadata_path: Path = RAW_METADATA_OHLCV_5_YEAR_PATH,
+    raw_path: Path = RAW_DATA_OHLCV_10_YEAR_PATH,
+    metadata_path: Path = RAW_METADATA_OHLCV_10_YEAR_PATH,
     force: bool = False,
     metadata_fields: dict[str, Any] | None = None,
 ) -> tuple[Path, Path]:
@@ -205,8 +205,8 @@ def download_data(force: bool = False) -> None:
     existing = [
         path
         for path in (
-            RAW_DATA_OHLCV_5_YEAR_PATH,
-            RAW_METADATA_OHLCV_5_YEAR_PATH,
+            RAW_DATA_OHLCV_10_YEAR_PATH,
+            RAW_METADATA_OHLCV_10_YEAR_PATH,
         )
         if path.exists()
     ]
@@ -283,8 +283,8 @@ def download_data(force: bool = False) -> None:
         response_body,
         request_url=final_url,
         retrieved_at_utc=retrieved_at_utc,
-        raw_path=RAW_DATA_OHLCV_5_YEAR_PATH,
-        metadata_path=RAW_METADATA_OHLCV_5_YEAR_PATH,
+        raw_path=RAW_DATA_OHLCV_10_YEAR_PATH,
+        metadata_path=RAW_METADATA_OHLCV_10_YEAR_PATH,
         force=force,
         metadata_fields={
             "symbol": config["symbol"],
@@ -301,8 +301,8 @@ def download_data(force: bool = False) -> None:
         f"({summary['unique_date_count']} unique dates) "
         f"from {summary['first_date']} to {summary['last_date']}."
     )
-    print(f"Raw response: {RAW_DATA_OHLCV_5_YEAR_PATH}")
-    print(f"Metadata: {RAW_METADATA_OHLCV_5_YEAR_PATH}")
+    print(f"Raw response: {RAW_DATA_OHLCV_10_YEAR_PATH}")
+    print(f"Metadata: {RAW_METADATA_OHLCV_10_YEAR_PATH}")
 
 
 # ==========================================
