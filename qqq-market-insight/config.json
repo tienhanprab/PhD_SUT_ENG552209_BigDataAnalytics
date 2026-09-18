@@ -1,0 +1,12 @@
+// qqq-market-insight/config.json
+// กำหนดค่าเริ่มต้นให้ API ดึงข้อมูลย้อนหลัง 5 ปี
+
+{
+  "symbol": "QQQ",
+  "asset_class": "etf",
+  "start_date": "2021-01-01",
+  "end_date": "2026-09-16",
+  "test_fraction": 0.20,
+  "random_state": 42,
+  "permutation_repeats": 30
+}
