@@ -11,15 +11,13 @@ from typing import Any
 # 1. ตั้งค่า Paths (อ้างอิงจากโฟลเดอร์ปัจจุบันของ File)
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config.json"
-RAW_DATA_OHLCV_10_YEAR_PATH = (
-    PROJECT_ROOT / "data" / "raw" / "qqq_nasdaq_ohlcv_10_year_raw.json"
+RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "10_year" / "qqq_nasdaq_raw.json"
+RAW_METADATA_PATH = (
+    PROJECT_ROOT / "data" / "raw" / "10_year" / "qqq_nasdaq_raw.metadata.json"
 )
-RAW_METADATA_OHLCV_10_YEAR_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "raw"
-    / "qqq_nasdaq_ohlcv_10_year_raw.metadata.json"
-)
+PROCESSED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "10_year" / "qqq_features.csv"
+FIGURES_PATH = PROJECT_ROOT / "outputs" / "figures" / "10_year"
+TABLES_PATH = PROJECT_ROOT / "outputs" / "tables" / "10_year"
 
 # 2. ตั้งค่า Constants สำหรับ API
 NASDAQ_API_ENDPOINT = "https://api.nasdaq.com/api/quote/{symbol}/historical"
@@ -43,21 +41,27 @@ REQUIRED_CONFIG_KEYS = {
 
 # 3. ฟังก์ชันอ่าน Config
 def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
-    """Load project parameters, allowing optional full-line // comments."""
     with path.open(encoding="utf-8") as config_file:
-        # json.loads() receives text. json.load() would require an open file object.
-        config = json.loads(
-            "\n".join(
-                line
-                for line in config_file
-                if not line.lstrip().startswith("//")
-            )
+        # อ่านไฟล์และกรองบรรทัดที่ขึ้นต้นด้วย // ออกก่อน
+        cleaned_json_string = "\n".join(
+            line for line in config_file if not line.lstrip().startswith("//")
         )
+        raw_config = json.loads(cleaned_json_string)
+  
+    active = raw_config.get("active_profile", "10_year")
+    
+    # ดึงข้อมูลของ profile นั้นมาใช้งาน
+    if active not in raw_config.get("profiles", {}):
+        raise ValueError(f"ไม่พบ Profile: {active} ในไฟล์ config")
 
+    config = raw_config["profiles"][active]
+    config["active_profile_name"] = active
+
+    # (โค้ดตรวจสอบ KEY ต่างๆ ยังเหมือนเดิม)
     missing = REQUIRED_CONFIG_KEYS - config.keys()
     if missing:
         raise ValueError(f"Missing config keys: {sorted(missing)}")
-
+    
     start_date = date.fromisoformat(config["start_date"])
     end_date = date.fromisoformat(config["end_date"])
     if start_date > end_date:
@@ -66,7 +70,7 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
         raise ValueError("test_fraction must be between 0 and 1")
     if config["permutation_repeats"] < 1:
         raise ValueError("permutation_repeats must be at least 1")
-
+    
     return config
 
 
@@ -76,8 +80,8 @@ def save_raw_response(
     *,
     request_url: str,
     retrieved_at_utc: str,
-    raw_path: Path = RAW_DATA_OHLCV_10_YEAR_PATH,
-    metadata_path: Path = RAW_METADATA_OHLCV_10_YEAR_PATH,
+    raw_path: Path = RAW_DATA_PATH,
+    metadata_path: Path = RAW_METADATA_PATH,
     force: bool = False,
     metadata_fields: dict[str, Any] | None = None,
 ) -> tuple[Path, Path]:
@@ -205,8 +209,8 @@ def download_data(force: bool = False) -> None:
     existing = [
         path
         for path in (
-            RAW_DATA_OHLCV_10_YEAR_PATH,
-            RAW_METADATA_OHLCV_10_YEAR_PATH,
+            RAW_DATA_PATH,
+            RAW_METADATA_PATH,
         )
         if path.exists()
     ]
@@ -283,8 +287,8 @@ def download_data(force: bool = False) -> None:
         response_body,
         request_url=final_url,
         retrieved_at_utc=retrieved_at_utc,
-        raw_path=RAW_DATA_OHLCV_10_YEAR_PATH,
-        metadata_path=RAW_METADATA_OHLCV_10_YEAR_PATH,
+        raw_path=RAW_DATA_PATH,
+        metadata_path=RAW_METADATA_PATH,
         force=force,
         metadata_fields={
             "symbol": config["symbol"],
@@ -301,8 +305,8 @@ def download_data(force: bool = False) -> None:
         f"({summary['unique_date_count']} unique dates) "
         f"from {summary['first_date']} to {summary['last_date']}."
     )
-    print(f"Raw response: {RAW_DATA_OHLCV_10_YEAR_PATH}")
-    print(f"Metadata: {RAW_METADATA_OHLCV_10_YEAR_PATH}")
+    print(f"Raw response: {RAW_DATA_PATH}")
+    print(f"Metadata: {RAW_METADATA_PATH}")
 
 
 # ==========================================
