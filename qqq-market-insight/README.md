@@ -29,26 +29,32 @@ qqq-market-insight/
 ├── README.md
 ├── config.json
 ├── requirements.txt
-├── notebooks/
-│   └── qqq_feature_importance.ipynb
 ├── src/
-│   ├── pipeline.py
-│   ├── build_notebook.py
-│   ├── build_report.py
-│   └── build_presentation.mjs
+│   ├── pipeline_qqq_5_year.py
+│   ├── pipeline_qqq_10_year.py
 ├── data/
 │   ├── raw/
-│   │   └── qqq_nasdaq_raw.json
+|   |   ├── 5_year/
+│   │   |    └── qqq_nasdaq_raw.json
+|   |   |    └── qqq_nasdaq_raw.metadata.json
+|   |   └── 10_year/
+│   │         └──qqq_nasdaq_raw.json
+|   |         └── qqq_nasdaq_raw.metadata.json
 │   └── processed/
-│       └── qqq_features.csv
+|   |   ├── 5_year/
+│   │   |    └── qqq_features.csv
+|   |   └── 10_year/
+│   │         └──qqq_features.csv
 ├── outputs/
 │   ├── figures/
+|   |   ├── 5_year/
+|   |   └── 10_year/
 │   └── tables/
+|   |   ├── 5_year/
+|   |   └── 10_year/
 ├── deliverables/
 │   ├── report/
 │   └── presentation/
-├── tests/
-│   └── test_pipeline.py
 ├── docs/
 │   ├── Big_Data_Analytics_Project_Assignment.pdf
 │   └── PROJECT_PLAN_AND_RUBRIC.md

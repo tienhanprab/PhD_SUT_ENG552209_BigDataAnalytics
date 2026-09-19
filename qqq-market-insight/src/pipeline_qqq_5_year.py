@@ -15,8 +15,8 @@ from typing import Any
 os.environ.setdefault(
     "MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "qqq-market-insight-mpl")
 )
-import matplotlib
 
+import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -332,7 +332,7 @@ def download_data(force: bool = False) -> None:
     print(f"Metadata: {RAW_METADATA_PATH}")
 
 
-# 7. Parse and clean
+# 7. Parse, Data cleanind and Preprocessing
 def _numeric(series: pd.Series) -> pd.Series:
     """Parse Nasdaq numeric strings such as ``$123.45`` and ``1,000``."""
     return pd.to_numeric(
