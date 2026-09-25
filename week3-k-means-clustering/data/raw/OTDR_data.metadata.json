@@ -1,0 +1,12 @@
+{
+  "dataset_handle": "yogi2727/optical-fibre-fault-detection/versions/1",
+  "dataset_version": 1,
+  "dataset_url": "https://www.kaggle.com/datasets/yogi2727/optical-fibre-fault-detection",
+  "source_file": "OTDR_data.csv",
+  "local_file": "data/raw/OTDR_data.csv",
+  "downloaded_at_utc": "2026-09-25T16:13:54.298370+00:00",
+  "size_bytes": 74389769,
+  "sha256": "aa2fbf1fe327686483d6c1a99ceefcd87e11d152a9d869b899cfe2132900b71f",
+  "license_as_reported_by_kaggle": "Unknown",
+  "downloader": "kagglehub 1.0.2"
+}

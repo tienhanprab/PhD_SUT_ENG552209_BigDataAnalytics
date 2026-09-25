@@ -1,0 +1,9 @@
+Check,Result
+Raw rows,"125,832"
+Exported ID columns removed,1
+Exact duplicate rows removed,"6,824"
+Rows retained,"119,008"
+Missing values retained data,0
+Non-finite clustering values,0
+Categorical clustering predictors,0
+Repeated feature vectors after exact-row deduplication,9

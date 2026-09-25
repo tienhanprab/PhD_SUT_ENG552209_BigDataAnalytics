@@ -1,0 +1,49 @@
+{
+  "dataset": {
+    "handle": "yogi2727/optical-fibre-fault-detection/versions/1",
+    "filename": "OTDR_data.csv",
+    "source_url": "https://www.kaggle.com/datasets/yogi2727/optical-fibre-fault-detection"
+  },
+  "analysis": {
+    "feature_columns": [
+      "SNR",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7",
+      "P8",
+      "P9",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29",
+      "P30"
+    ],
+    "held_out_columns": ["Class", "Position", "Reflectance", "loss"],
+    "k_values": [2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "random_state": 42,
+    "kmeans_n_init": 20,
+    "silhouette_sample_size": 10000,
+    "pca_plot_sample_size": 20000
+  }
+}
+

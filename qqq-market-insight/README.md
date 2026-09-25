@@ -112,7 +112,7 @@ The intended end-to-end workflow is:
 
 ```bash
 # 1. Download the source data and run the processing/modeling pipeline.
-.venv/bin/python src/pipeline.py --download
+.venv/bin/python src/pipeline_qqq_5_year.py --download
 
 # On later runs, reuse the immutable raw response.
 .venv/bin/python src/pipeline.py
@@ -313,3 +313,132 @@ SHA-256 checksum are stored in the separate metadata file.
 - At least five different chart types with titles, axes, units, and interpretations
 
 See `docs/Big_Data_Analytics_Project_Assignment.pdf` for the authoritative assignment requirements and `docs/PROJECT_PLAN_AND_RUBRIC.md` for the implementation checklist.
+
+
+Downloaded 1433 QQQ daily rows (1433 unique dates) from 2021-01-04 to 2026-09-17.
+Raw response: /Users/tien/Development/PhD_SUT_ENG552209_BigDataAnalytics/qqq-market-insight/data/raw/5_year/qqq_nasdaq_raw.json
+Metadata: /Users/tien/Development/PhD_SUT_ENG552209_BigDataAnalytics/qqq-market-insight/data/raw/5_year/qqq_nasdaq_raw.metadata.json
+{
+  "quality": {
+    "raw_rows": 1433,
+    "duplicate_date_rows_removed": 0,
+    "invalid_rows_removed": 0,
+    "rows_with_nonfinite_values_removed": 0,
+    "rows_with_missing_values_removed": 0,
+    "rows_with_nonpositive_price_or_negative_volume_removed": 0,
+    "rows_with_invalid_high_removed": 0,
+    "rows_with_invalid_low_removed": 0,
+    "clean_ohlcv_rows": 1433,
+    "cleaning_policy": "Remove invalid OHLCV and exact duplicates; reject conflicting dates. Reason counts may overlap; raw_rows = invalid_rows_removed + duplicate_date_rows_removed + clean_ohlcv_rows.",
+    "feature_warmup_rows_removed": 20,
+    "terminal_target_rows_removed": 1,
+    "other_feature_rows_removed": 0,
+    "feature_rows": 1412,
+    "warmup_or_terminal_rows_removed": 21,
+    "feature_missing_values": 0,
+    "processed_start_date": "2021-02-02",
+    "processed_end_date": "2026-09-16",
+    "train_rows": 1128,
+    "test_rows": 283,
+    "holdout_gap_rows": 1,
+    "holdout_gap_date": "2025-07-31",
+    "train_end_date": "2025-07-30",
+    "train_label_end_date": "2025-07-31",
+    "test_start_date": "2025-08-01",
+    "positive_class_rate": 0.5446175637393768,
+    "split_method": "chronological final holdout",
+    "test_fraction_configured": 0.2,
+    "permutation_importance_scope": "held-out test set only",
+    "eda_scope": "training period only (holdout and boundary gap excluded)",
+    "eda_rows": 1128,
+    "cv_model": "GradientBoosting",
+    "cv_splits": 5,
+    "cv_gap_rows": 1,
+    "modeling_mode": "original three fixed models; no hyperparameter search",
+    "permutation_importance_model": "GradientBoosting",
+    "permutation_importance_scoring": "balanced_accuracy",
+    "holdout_status": "previously inspected; exploratory comparison, not fresh confirmation",
+    "raw_sha256": "5af8f404421142e426ca6857137b9355c4bee85fd8067ae6923973e3dab7001a",
+    "config": {
+      "symbol": "QQQ",
+      "asset_class": "etf",
+      "start_date": "2021-01-01",
+      "end_date": "2026-09-17",
+      "test_fraction": 0.2,
+      "random_state": 42,
+      "permutation_repeats": 30,
+      "active_profile_name": "5_year"
+    },
+    "family_importance_method": "sum of individual feature means, not joint permutation"
+  },
+  "metrics": [
+    {
+      "model": "Majority baseline",
+      "accuracy": 0.5477031802120141,
+      "balanced_accuracy": 0.5,
+      "precision": 0.5477031802120141,
+      "recall": 1.0,
+      "f1": 0.7077625570776256,
+      "roc_auc": 0.5
+    },
+    {
+      "model": "Logistic regression",
+      "accuracy": 0.508833922261484,
+      "balanced_accuracy": 0.5005796370967741,
+      "precision": 0.5481927710843374,
+      "recall": 0.5870967741935483,
+      "f1": 0.5669781931464174,
+      "roc_auc": 0.4806451612903226
+    },
+    {
+      "model": "Random forest",
+      "accuracy": 0.5159010600706714,
+      "balanced_accuracy": 0.5097530241935484,
+      "precision": 0.55625,
+      "recall": 0.5741935483870968,
+      "f1": 0.5650793650793651,
+      "roc_auc": 0.5033770161290323
+    },
+    {
+      "model": "GradientBoosting",
+      "accuracy": 0.5300353356890459,
+      "balanced_accuracy": 0.5274193548387096,
+      "precision": 0.5733333333333334,
+      "recall": 0.5548387096774193,
+      "f1": 0.5639344262295082,
+      "roc_auc": 0.5268649193548387
+    }
+  ],
+  "top_features": [
+    {
+      "feature": "atr_14_pct",
+      "importance_mean": 0.031501176075268734,
+      "importance_std": 0.00848058422794957,
+      "family": "Volatility"
+    },
+    {
+      "feature": "rsi_14",
+      "importance_mean": 0.012718413978494544,
+      "importance_std": 0.007216970280605628,
+      "family": "Momentum"
+    },
+    {
+      "feature": "roc_10",
+      "importance_mean": 0.012131216397849398,
+      "importance_std": 0.010914291602843936,
+      "family": "Momentum"
+    },
+    {
+      "feature": "volatility_20",
+      "importance_mean": 0.011904401881720357,
+      "importance_std": 0.015284822179092135,
+      "family": "Volatility"
+    },
+    {
+      "feature": "stoch_k_14",
+      "importance_mean": 0.011355846774193485,
+      "importance_std": 0.010411494851864612,
+      "family": "Momentum"
+    }
+  ]
+}

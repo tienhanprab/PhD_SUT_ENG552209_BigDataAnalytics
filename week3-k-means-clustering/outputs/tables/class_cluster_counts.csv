@@ -1,0 +1,9 @@
+Known fault class,0,1
+0 Normal,12326,3718
+1 Fibre tapping,15287,713
+2 Bad splice,7219,1961
+3 Bending event,15923,77
+4 Dirty connector,7945,8055
+5 Fibre cut,5795,8054
+6 PC connector,9896,6104
+7 Reflector,45,15890
