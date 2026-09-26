@@ -1,0 +1,3 @@
+Plant,Expected inverters,Complete timestamps,Incomplete timestamps,Minimum observed inverters,Coverage distribution
+1,22,3057,100,4,"{4.0: 1, 10.0: 32, 14.0: 23, 16.0: 1, 18.0: 14, 19.0: 1, 20.0: 1, 21.0: 27, 22.0: 3057}"
+2,22,2355,904,12,"{12: 64, 18: 840, 22: 2355}"

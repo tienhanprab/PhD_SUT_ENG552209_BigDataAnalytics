@@ -1,0 +1,5 @@
+Plant,Source,Rows,Columns,Null values,Exact duplicate rows,Duplicate grain keys
+1,generation,68778,7,0,0,0
+1,weather,3182,6,0,0,0
+2,generation,67698,7,0,0,0
+2,weather,3259,6,0,0,0

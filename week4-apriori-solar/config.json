@@ -1,0 +1,30 @@
+{
+  "dataset": {
+    "handle": "anikannal/solar-power-generation-data/versions/1",
+    "slug": "anikannal/solar-power-generation-data",
+    "version": 1,
+    "source_url": "https://www.kaggle.com/datasets/anikannal/solar-power-generation-data",
+    "license_as_reported_by_kaggle": "Data files © Original Authors"
+  },
+  "analysis": {
+    "random_state": 42,
+    "daylight_min_irradiation": 0.0,
+    "minimum_inverter_coverage": 0.5,
+    "discovery_day_fraction": 0.7,
+    "support_grid": [0.02, 0.03, 0.05, 0.075, 0.1, 0.15, 0.25],
+    "confidence_grid": [0.5, 0.6, 0.7, 0.8],
+    "selected_min_support": 0.075,
+    "selected_min_confidence": 0.6,
+    "max_itemset_length": 3,
+    "minimum_joint_count": 30,
+    "minimum_discovery_days": 5,
+    "minimum_discovery_lift": 1.1,
+    "minimum_validation_lift": 1.0,
+    "minimum_validation_antecedent_count": 30,
+    "minimum_plant_lift": 1.0,
+    "redundancy_confidence_gain": 0.05,
+    "redundancy_lift_gain": 0.1,
+    "top_n": 10
+  }
+}
+

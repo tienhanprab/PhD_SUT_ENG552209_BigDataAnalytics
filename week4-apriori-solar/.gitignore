@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.DS_Store
+.matplotlib/
+*.egg-info/
+
+# Kaggle source files are downloaded locally and are not redistributed.
+data/raw/*.csv
+data/raw/*.zip

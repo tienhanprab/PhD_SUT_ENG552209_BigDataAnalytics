@@ -1,0 +1,85 @@
+{
+  "metadata_schema_version": 1,
+  "dataset_slug": "anikannal/solar-power-generation-data",
+  "dataset_handle": "anikannal/solar-power-generation-data/versions/1",
+  "dataset_version": 1,
+  "dataset_url": "https://www.kaggle.com/datasets/anikannal/solar-power-generation-data/versions/1",
+  "recorded_at_utc": "2026-09-25T20:55:03.881744+00:00",
+  "integrity": "exact byte size and SHA-256 pinned to Kaggle dataset version 1",
+  "download_client": {
+    "name": "kagglehub",
+    "kagglehub_version": "1.0.2"
+  },
+  "files": [
+    {
+      "filename": "Plant_1_Generation_Data.csv",
+      "local_file": "data/raw/Plant_1_Generation_Data.csv",
+      "plant": 1,
+      "role": "generation",
+      "size_bytes": 4839076,
+      "sha256": "882f75f1c295946633617646cc92343ddb6fb821a2546c82f7e5cc737a13624e",
+      "columns": [
+        "DATE_TIME",
+        "PLANT_ID",
+        "SOURCE_KEY",
+        "DC_POWER",
+        "AC_POWER",
+        "DAILY_YIELD",
+        "TOTAL_YIELD"
+      ],
+      "acquisition_this_run": "reused"
+    },
+    {
+      "filename": "Plant_1_Weather_Sensor_Data.csv",
+      "local_file": "data/raw/Plant_1_Weather_Sensor_Data.csv",
+      "plant": 1,
+      "role": "weather",
+      "size_bytes": 287847,
+      "sha256": "91325041328745c288cb809aebd8b1b59cde54284500902ead1fb393499d6806",
+      "columns": [
+        "DATE_TIME",
+        "PLANT_ID",
+        "SOURCE_KEY",
+        "AMBIENT_TEMPERATURE",
+        "MODULE_TEMPERATURE",
+        "IRRADIATION"
+      ],
+      "acquisition_this_run": "reused"
+    },
+    {
+      "filename": "Plant_2_Generation_Data.csv",
+      "local_file": "data/raw/Plant_2_Generation_Data.csv",
+      "plant": 2,
+      "role": "generation",
+      "size_bytes": 5805157,
+      "sha256": "9b735e9278774d4d1dd4601047315ef50b3793244d892446f6aabf4fae63bd37",
+      "columns": [
+        "DATE_TIME",
+        "PLANT_ID",
+        "SOURCE_KEY",
+        "DC_POWER",
+        "AC_POWER",
+        "DAILY_YIELD",
+        "TOTAL_YIELD"
+      ],
+      "acquisition_this_run": "reused"
+    },
+    {
+      "filename": "Plant_2_Weather_Sensor_Data.csv",
+      "local_file": "data/raw/Plant_2_Weather_Sensor_Data.csv",
+      "plant": 2,
+      "role": "weather",
+      "size_bytes": 301443,
+      "sha256": "cafd80885a51b88521b3301cffa4e4f013e2516fcb3478b439a81855edac3a64",
+      "columns": [
+        "DATE_TIME",
+        "PLANT_ID",
+        "SOURCE_KEY",
+        "AMBIENT_TEMPERATURE",
+        "MODULE_TEMPERATURE",
+        "IRRADIATION"
+      ],
+      "acquisition_this_run": "reused"
+    }
+  ]
+}
