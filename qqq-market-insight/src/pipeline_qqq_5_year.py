@@ -594,10 +594,11 @@ def build_models(
     y_test: pd.Series,
     config: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], pd.DataFrame]:
-    """Return (fitted_models, metrics) for the original three fixed models.
+    """Return fitted estimators and held-out metrics for four fixed models.
 
-    Fit Majority baseline, Logistic regression, and Random forest on X_train
-    only. Imputation/scaling are learned within the logistic Pipeline. Score
+    Fit Majority baseline, Logistic regression, Random forest, and
+    HistGradientBoosting (reported as GradientBoosting) on X_train only.
+    Imputation/scaling are learned within the logistic Pipeline. Score
     X_test via metric_row; run() handles saved predictions and artifacts.
     Hyperparameters are fixed; no search or automatic model selection is used.
     """
@@ -867,7 +868,7 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
     x_train, y_train = train[FEATURES], train["target_up"]
     x_test, y_test = test[FEATURES], test["target_up"]
 
-    # 13.6-7. Fit the original three fixed models and evaluate the holdout.
+    # 13.6-7. Fit four fixed models and evaluate the holdout.
     fitted, metrics = build_models(
         x_train, y_train, x_test, y_test, config=config
     )
@@ -1078,7 +1079,7 @@ def run(download: bool = False, force: bool = False) -> dict[str, Any]:
             "cv_model": target_model_name,
             "cv_splits": CV_SPLITS,
             "cv_gap_rows": CV_GAP,
-            "modeling_mode": "original three fixed models; no hyperparameter search",
+            "modeling_mode": "four fixed models including GradientBoosting; no hyperparameter search",
             "permutation_importance_model": target_model_name,
             "permutation_importance_scoring": "balanced_accuracy",
             "holdout_status": "previously inspected; exploratory comparison, not fresh confirmation",
