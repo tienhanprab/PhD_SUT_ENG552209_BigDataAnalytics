@@ -1,0 +1,6 @@
+feature,cut_points,training_median,intervals
+light_lux,[17722.0],45345.0,right-closed; infinite tails
+panel_temperature_c,"[35.0, 53.4375]",44.75,right-closed; infinite tails
+voltage_v,"[11.21416666666666, 16.1525]",15.235,right-closed; infinite tails
+current_a,"[0.394, 1.66]",1.046,right-closed; infinite tails
+power_w,"[4.344615567608187, 26.69184974156452]",15.904278095028197,right-closed; infinite tails

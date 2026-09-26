@@ -1,0 +1,15 @@
+model,rule_id,rule,label,conditions,train_support,train_precision,test_support,test_precision
+OneR,1,IF light_lux = High THEN Normal,0,1,67518,0.8559495245712254,33289,0.8873802156868635
+OneR,2,IF light_lux = Low THEN Normal,0,1,33761,0.9920618465092859,18405,0.9634338494974192
+PRISM,1,IF panel_temperature_c = Low THEN Normal,0,1,33856,1.0,20003,1.0
+PRISM,2,IF light_lux = Low AND current_a = Medium THEN Normal,0,2,1085,1.0,661,0.9984871406959153
+PRISM,3,IF light_lux = Low AND voltage_v = Medium THEN Normal,0,2,720,1.0,493,1.0
+PRISM,4,IF light_lux = Low AND power_w = Medium THEN Normal,0,2,1102,1.0,662,1.0
+PRISM,5,IF panel_temperature_c = Medium AND current_a = Medium AND power_w = High AND voltage_v = Medium THEN Normal,0,4,14,1.0,1,1.0
+PRISM,6,IF panel_temperature_c = Medium AND power_w = Medium AND current_a = Low THEN Normal,0,3,64,1.0,60,0.4666666666666667
+PRISM,7,IF panel_temperature_c = Medium AND voltage_v = Medium AND current_a = Low THEN Normal,0,3,122,1.0,105,0.6952380952380952
+PRISM,8,IF current_a = Medium AND power_w = High AND voltage_v = Medium THEN Normal,0,3,25,1.0,2,1.0
+PRISM,9,IF panel_temperature_c = Medium AND power_w = Low AND voltage_v = High THEN Fault,1,3,321,1.0,0,
+PRISM,10,IF current_a = Medium AND power_w = Low AND panel_temperature_c = High THEN Fault,1,3,57,1.0,0,
+PRISM,11,IF power_w = Low AND panel_temperature_c = High THEN Fault,1,2,654,1.0,237,1.0
+PRISM,12,IF voltage_v = Low AND panel_temperature_c = High THEN Fault,1,2,549,1.0,237,1.0

@@ -1,0 +1,45 @@
+{
+  "raw_rows": 152973,
+  "raw_columns": 16,
+  "clean_rows": 152973,
+  "duplicates_removed": 0,
+  "missing_by_column": {
+    "timestamp_s": 0,
+    "day": 0,
+    "seconds_of_day": 0,
+    "voltage_v": 0,
+    "current_a": 0,
+    "power_w": 0,
+    "panel_temperature_c": 0,
+    "light_lux": 0,
+    "fault": 0,
+    "fault_type": 0,
+    "event_id": 0,
+    "true_irradiance_wm2": 0,
+    "ambient_temperature_c": 0,
+    "true_panel_temperature_c": 0,
+    "true_voltage_v": 0,
+    "true_current_a": 0
+  },
+  "train_rows": 101279,
+  "test_rows": 51694,
+  "train_days": [
+    0,
+    1
+  ],
+  "test_days": [
+    2
+  ],
+  "train_faults": 9994,
+  "test_faults": 4422,
+  "shared_fault_events": 0,
+  "oner_feature": "light_lux",
+  "mixed_training_combinations": 16,
+  "observed_training_combinations": 42,
+  "prism_rejected_candidates": 32,
+  "prism_deferred_positives": 65617,
+  "prism_unmatched_test": 31038,
+  "prism_conflicting_test": 0,
+  "light_at_sensor_max_fraction": 0.36424728546867746,
+  "power_vi_mae": 0.02155036870451425
+}
